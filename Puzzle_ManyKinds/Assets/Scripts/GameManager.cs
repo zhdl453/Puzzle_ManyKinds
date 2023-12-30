@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
     private Vector2Int dimensions;
     private float width;
     private float height;
+    private Transform draggingPiece = null; //nothing selected yet
     void Start()
     {
         //Create the UI
@@ -30,6 +31,32 @@ public class GameManager : MonoBehaviour
             image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
             //Assign Button action
             image.GetComponent<Button>().onClick.AddListener(delegate { StartGame(texture); }); //OnClick에다가 이벤트 추가 시키는법
+        }
+    }
+
+    void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+            if (hit)
+            {
+                //Everything is moveable, so we don't need to check it's a Piece.
+                draggingPiece = hit.transform;
+            }
+        }
+        //when we release the mouse button stop dragging.
+        if (draggingPiece && Input.GetMouseButtonUp(0))
+        {
+            draggingPiece = null;
+        }
+
+        //Set the dragged piece position to the position of the mouse.
+        if (draggingPiece)
+        {
+            Vector3 newPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            newPosition.z = draggingPiece.position.z; //이 세팅을 안하면 카메라의 z축값이 들어가 보이지 않을것이다.
+            draggingPiece.position = newPosition;
         }
     }
 
@@ -45,6 +72,8 @@ public class GameManager : MonoBehaviour
         CreateJigsawPieces(jigsawTexture);
         //Place the pieces randomly into the visible area.
         Scatter();
+        //Update the border to fit the chosen puzzle.
+        UpdateBorder();
     }
     /// <summary>
     /// Difficuty is the number of pieces on the smallest texture dimension.
@@ -124,12 +153,14 @@ public class GameManager : MonoBehaviour
         float orthoWidth = (screenAspect * orthoHeight);
 
         //Ensure pieces are away from the edges.
+        //퍼즐조각의 너비와 높이 계산
         float pieceWidth = width * gameHolder.localScale.x;
         float pieceHeight = height * gameHolder.localScale.y;
 
+        //화면의 너비와 높이에서 퍼즐 조각의 너비와 높이를 빼줍니다.
+        //이렇게 하면 퍼즐 조각이 화면 바깥으로 나가지 않도록 범위를 제한하게 됩니다.
         orthoHeight -= pieceHeight;
         orthoWidth -= pieceWidth;
-
 
         //Place each piece randomly in the visible area.
         foreach (Transform piece in pieces)
@@ -138,6 +169,29 @@ public class GameManager : MonoBehaviour
             float y = Random.Range(-orthoHeight, orthoHeight);
             piece.position = new Vector3(x, y, -1);
         }
+    }
+    private void UpdateBorder()
+    {
+        LineRenderer lineRenderer = gameHolder.GetComponent<LineRenderer>();
 
+        //Calculate helf sizes to simplify the code.
+        float halfWidth = (width * dimensions.x) / 2f;
+        float halfHeight = (height * dimensions.y) / 2f;
+
+        //we want the border to be hehind the pieces.
+        float borderZ = 0f;
+
+        //Set border vertices, starting top left, going clockwise.
+        lineRenderer.SetPosition(0, new Vector3(-halfWidth, halfHeight, borderZ));
+        lineRenderer.SetPosition(1, new Vector3(halfWidth, halfHeight, borderZ));
+        lineRenderer.SetPosition(2, new Vector3(halfWidth, -halfHeight, borderZ));
+        lineRenderer.SetPosition(3, new Vector3(-halfWidth, -halfHeight, borderZ));
+
+        //Set the thickness of the border line.
+        lineRenderer.startWidth = 0.1f;
+        lineRenderer.endWidth = 0.1f;
+
+        //Show the border line.
+        lineRenderer.enabled = true;
     }
 }
