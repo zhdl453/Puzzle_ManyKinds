@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -17,12 +18,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<Texture2D> imageTextures;
     [SerializeField] private Transform levelSelectPanel;
     [SerializeField] private Image levelSelectPrefab;
+    [SerializeField] private GameObject playAgainButton;
     private List<Transform> pieces;
     private Vector2Int dimensions;
     private float width;
     private float height;
     private Transform draggingPiece = null; //nothing selected yet
     private Vector3 offset;
+    private int piecesCorrect;
 
     void Start()
     {
@@ -52,6 +55,7 @@ public class GameManager : MonoBehaviour
         //when we release the mouse button stop dragging.
         if (draggingPiece && Input.GetMouseButtonUp(0))
         {
+            SnapAndDisableIfCorrect();
             draggingPiece.position += Vector3.forward;
             draggingPiece = null;
         }
@@ -64,6 +68,49 @@ public class GameManager : MonoBehaviour
             newPosition += offset;
             draggingPiece.position = newPosition;
         }
+    }
+    public void SnapAndDisableIfCorrect()
+    {
+        //we need to know the index of the piece to determine it's correct position.
+        int pieceIndex = pieces.IndexOf(draggingPiece);
+
+        //The coordinates of the piece in the puzzle.
+        int col = pieceIndex % dimensions.x;
+        int row = pieceIndex / dimensions.x;
+
+        //The target position in the non-scaled coordinates.
+        Vector2 targetPostion = new((-width * dimensions.x / 2) + (width * col) + (width / 2),
+                                    (-height * dimensions.y / 2) + (height * row) + (height / 2));
+        //Check if we're in the correct location
+        if (Vector2.Distance(draggingPiece.localPosition, targetPostion) < (width / 2))
+        {
+            //snap to our destination.
+            draggingPiece.localPosition = targetPostion;
+
+            //Disable the collider so we can't click on the object anymore.
+            //draggingPiece.GetComponent<BoxCollider2D>().enabled = false;
+
+            //Increase the number of correct pieces, and check for puzzle completion.
+            piecesCorrect++;
+            if (piecesCorrect == pieces.Count)
+            {
+                playAgainButton.SetActive(true);
+            }
+        }
+    }
+    public void RestartGame()
+    {
+        //Destroy all the puzzle pieces.
+        foreach (Transform piece in pieces)
+        {
+            Destroy(piece.gameObject);
+        }
+        pieces.Clear();
+        //Hide the outline.
+        gameHolder.GetComponent<LineRenderer>().enabled = false;
+        //Show the level select UI.
+        playAgainButton.SetActive(false);
+        levelSelectPanel.gameObject.SetActive(true);
     }
 
     public void StartGame(Texture2D jigsawTexture)
@@ -80,6 +127,8 @@ public class GameManager : MonoBehaviour
         Scatter();
         //Update the border to fit the chosen puzzle.
         UpdateBorder();
+        //As we're starting the puzzle there will be no correct pieces.
+        piecesCorrect = 0;
     }
     /// <summary>
     /// Difficuty is the number of pieces on the smallest texture dimension.
