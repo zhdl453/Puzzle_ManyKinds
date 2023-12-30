@@ -22,6 +22,8 @@ public class GameManager : MonoBehaviour
     private float width;
     private float height;
     private Transform draggingPiece = null; //nothing selected yet
+    private Vector3 offset;
+
     void Start()
     {
         //Create the UI
@@ -43,11 +45,14 @@ public class GameManager : MonoBehaviour
             {
                 //Everything is moveable, so we don't need to check it's a Piece.
                 draggingPiece = hit.transform;
+                offset = draggingPiece.position - Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                offset += Vector3.back;
             }
         }
         //when we release the mouse button stop dragging.
         if (draggingPiece && Input.GetMouseButtonUp(0))
         {
+            draggingPiece.position += Vector3.forward;
             draggingPiece = null;
         }
 
@@ -55,7 +60,8 @@ public class GameManager : MonoBehaviour
         if (draggingPiece)
         {
             Vector3 newPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            newPosition.z = draggingPiece.position.z; //이 세팅을 안하면 카메라의 z축값이 들어가 보이지 않을것이다.
+            //newPosition.z = draggingPiece.position.z; //이 세팅을 안하면 카메라의 z축값이 들어가 보이지 않을것이다.
+            newPosition += offset;
             draggingPiece.position = newPosition;
         }
     }
