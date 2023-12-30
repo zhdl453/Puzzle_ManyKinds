@@ -1,0 +1,143 @@
+using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class GameManager : MonoBehaviour
+{
+    [Header("Game Elements")]
+    [Range(2, 6)] //밑의 난이도를 2~6사이로 조절하는 바 생김
+    [SerializeField] private int difficulty = 4;
+    [SerializeField] private Transform gameHolder;
+    [SerializeField] private Transform piecePrefab;
+
+
+    [Header("UI Elements")]
+    [SerializeField] private List<Texture2D> imageTextures;
+    [SerializeField] private Transform levelSelectPanel;
+    [SerializeField] private Image levelSelectPrefab;
+    private List<Transform> pieces;
+    private Vector2Int dimensions;
+    private float width;
+    private float height;
+    void Start()
+    {
+        //Create the UI
+        foreach (Texture2D texture in imageTextures)
+        {
+            Image image = Instantiate(levelSelectPrefab, levelSelectPanel); //levelSelectPanel를 부모객체로 놓고, 그 밑에 프리팹 생성
+            image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
+            //Assign Button action
+            image.GetComponent<Button>().onClick.AddListener(delegate { StartGame(texture); }); //OnClick에다가 이벤트 추가 시키는법
+        }
+    }
+
+    public void StartGame(Texture2D jigsawTexture)
+    {
+        //Hide The UI
+        levelSelectPanel.gameObject.SetActive(false);
+        //We store a list of the transform for each jigsaw piece so we can track them later.
+        pieces = new List<Transform>();
+        //Calculate the size of each jigsaw piece, based on a difficulty setting.
+        dimensions = GetDimensions(jigsawTexture, difficulty);
+        //Create the pieces of the correct size with the correct texture.
+        CreateJigsawPieces(jigsawTexture);
+        //Place the pieces randomly into the visible area.
+        Scatter();
+    }
+    /// <summary>
+    /// Difficuty is the number of pieces on the smallest texture dimension.
+    /// This Helps ensure the pieces are as squres as possible.
+    /// </summary>
+    /// <param name="jigsawTexture"></param>
+    /// <param name="difficulty"></param>
+    /// <returns></returns>
+    Vector2Int GetDimensions(Texture2D jigsawTexture, int difficulty)
+    {
+        Vector2Int dimensions = Vector2Int.zero; //1.디멘션를 선언하여 가로 세로 크기를 저장할 공간을 만듦
+        if (jigsawTexture.width < jigsawTexture.height)//2.가로세로 크기비교해서 작은쪽 길이에 사용자가 설정한 난이도 적용
+        {
+            dimensions.x = difficulty;
+            dimensions.y = (difficulty * jigsawTexture.height) / jigsawTexture.width;
+            //3.퍼즐조각이 가능한 정사각형에 가깝게 만드는 계산
+        }
+        else
+        {
+            dimensions.x = (difficulty * jigsawTexture.width) / jigsawTexture.height;
+            dimensions.y = difficulty;
+        }
+        return dimensions;
+    }
+
+    void CreateJigsawPieces(Texture2D jigsawTexture)
+    {
+        //Calculate piece sizes based on the dimensions.
+        height = 1f / dimensions.y; //퍼즐조각의 높이 = 1 / dimensions.y=퍼즐의 세로 방향의 조각수
+        //예를 들어 dimensions.y가 4라면 height는 0.25임
+        //원본 이미지의 가로 세로 비율
+        float aspect = (float)jigsawTexture.width / jigsawTexture.height;
+        width = aspect / dimensions.x; //이렇게 해야 원본 이미지의 가로세로 비율 유지되면서 퍼즐조각의 너비 결정
+
+        for (int row = 0; row < dimensions.y; row++) //행
+        {
+            for (int col = 0; col < dimensions.x; col++) //열
+            {
+                //Create the piece in the right location of the right size.
+                Transform piece = Instantiate(piecePrefab, gameHolder);
+                piece.localPosition = new Vector3
+                (
+                    (-width * dimensions.x / 2) + (width * col) + (width / 2), //if total width was 2, we'd start at -1 and go to +1
+                    (-height * dimensions.x / 2) + (height * row) + (height / 2), //if total width was 2, we'd start at -1 and go to +1
+                    -1
+                );
+                piece.localScale = new Vector3(width, height, 1f);
+
+                //we don't have to name them, nut always useful for debugging.
+                piece.name = $"Piece {(row * dimensions.x) + col}";
+                pieces.Add(piece);
+
+                //Assign the correct part of the texture for this jigsaw piece
+                //we need our width and height both to be normalised between 0 and 1 for the UV.
+                float width1 = 1f / dimensions.x;
+                float height1 = 1f / dimensions.y;
+                //UV coord order is anti-clockwise: (0,0),(1,0),(0,1),(1,1)
+                Vector2[] uv = new Vector2[4];
+                uv[0] = new Vector2(width1 * col, height1 * row);
+                uv[1] = new Vector2(width1 * (col + 1), height1 * row);
+                uv[2] = new Vector2(width1 * col, height1 * (row + 1));
+                uv[3] = new Vector2(width1 * (col + 1), height1 * (row + 1));
+                //Assign our new UVs to the mesh.
+                Mesh mesh = piece.GetComponent<MeshFilter>().mesh;
+                mesh.uv = uv; //이 부분은 가져온 메시의 UV 맵을 설정한다.
+                //UPdate the texture on the piece
+                piece.GetComponent<MeshRenderer>().material.SetTexture("_MainTex", jigsawTexture);
+            }
+        }
+    }
+
+    private void Scatter()
+    {
+        //Calculate the visible orthographic size of the screen.
+        float orthoHeight = Camera.main.orthographicSize;
+        float screenAspect = (float)Screen.width / Screen.height;
+        float orthoWidth = (screenAspect * orthoHeight);
+
+        //Ensure pieces are away from the edges.
+        float pieceWidth = width * gameHolder.localScale.x;
+        float pieceHeight = height * gameHolder.localScale.y;
+
+        orthoHeight -= pieceHeight;
+        orthoWidth -= pieceWidth;
+
+
+        //Place each piece randomly in the visible area.
+        foreach (Transform piece in pieces)
+        {
+            float x = Random.Range(-orthoWidth, orthoWidth);
+            float y = Random.Range(-orthoHeight, orthoHeight);
+            piece.position = new Vector3(x, y, -1);
+        }
+
+    }
+}
