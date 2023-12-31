@@ -71,47 +71,77 @@ public class GameManager : MonoBehaviour
     }
     public void SnapAndDisableIfCorrect()
     {
-        //we need to know the index of the piece to determine it's correct position.
-        int pieceIndex = pieces.IndexOf(draggingPiece);
+        //각 퍼즐 조각이 가장 가까운 퍼즐 위치에 스냅될 수 있도록 로직 바꿔야함.
+        int closestIndex = -1;
+        float closestDistance = float.MaxValue;
 
-        //The coordinates of the piece in the puzzle.
-        int col = pieceIndex % dimensions.x;
-        int row = pieceIndex / dimensions.x;
-
-        //The target position in the non-scaled coordinates.
-        Vector2 targetPostion = new((-width * dimensions.x / 2) + (width * col) + (width / 2),
-                                    (-height * dimensions.y / 2) + (height * row) + (height / 2));
-        //Check if we're in the correct location
-        if (Vector2.Distance(draggingPiece.localPosition, targetPostion) < (width / 2))
+        for (int i = 0; i < pieces.Count; i++)
         {
-            //snap to our destination.
-            draggingPiece.localPosition = targetPostion;
-
-            //Disable the collider so we can't click on the object anymore.
-            //draggingPiece.GetComponent<BoxCollider2D>().enabled = false;
-
-            //Increase the number of correct pieces, and check for puzzle completion.
-            piecesCorrect++;
-            if (piecesCorrect == pieces.Count)
+            int col = i % dimensions.x;
+            int row = i / dimensions.x;
+            Vector2 targetPostion = new((-width * dimensions.x / 2) + (width * col) + (width / 2),
+                                    (-height * dimensions.y / 2) + (height * row) + (height / 2));
+            float distance = Vector2.Distance(draggingPiece.localPosition, targetPostion);
+            if (distance < closestDistance)
             {
-                playAgainButton.SetActive(true);
+                closestDistance = distance;
+                closestIndex = i;
             }
         }
-    }
-    public void RestartGame()
-    {
-        //Destroy all the puzzle pieces.
-        foreach (Transform piece in pieces)
+        if (closestDistance < (width / 2))
         {
-            Destroy(piece.gameObject);
+            int col = closestIndex % dimensions.x;
+            int row = closestIndex / dimensions.x;
+
+            Vector2 targetPosition = new((-width * dimensions.x / 2) + (width * col) + (width / 2),
+                                    (-height * dimensions.y / 2) + (height * row) + (height / 2));
+            draggingPiece.localPosition = targetPosition;
+
+            // 올바른 위치에 놓였는지 확인.
+            if ((Vector2)draggingPiece.localPosition == targetPosition)
+            {
+                piecesCorrect++;
+                // 퍼즐 조각이 올바른 위치에 놓이면, 더 이상 움직이지 못하게 비활성화.
+                //draggingPiece.GetComponent<Collider2D>().enabled = false;
+            }
         }
-        pieces.Clear();
-        //Hide the outline.
-        gameHolder.GetComponent<LineRenderer>().enabled = false;
-        //Show the level select UI.
-        playAgainButton.SetActive(false);
-        levelSelectPanel.gameObject.SetActive(true);
+        // 모든 퍼즐 조각이 올바르게 맞춰졌는지 확인.
+        if (piecesCorrect == pieces.Count)
+        {
+            Debug.Log("Puzzle Complete!");
+        }
     }
+
+
+    // public void SnapAndDisableIfCorrect()
+    // {
+    //     //각 퍼즐 조각이 가장 가까운 퍼즐 위치에 스냅될 수 있도록 로직 바꿔야함.
+    //     int pieceIndex = pieces.IndexOf(draggingPiece);
+
+    //     //The coordinates of the piece in the puzzle.
+    //     int col = pieceIndex % dimensions.x;
+    //     int row = pieceIndex / dimensions.x;
+
+    //     //The target position in the non-scaled coordinates.
+    //     Vector2 targetPostion = new((-width * dimensions.x / 2) + (width * col) + (width / 2),
+    //                                 (-height * dimensions.y / 2) + (height * row) + (height / 2));
+    //     //Check if we're in the correct location
+    //     if (Vector2.Distance(draggingPiece.localPosition, targetPostion) < (width / 2))
+    //     {
+    //         //snap to our destination.
+    //         draggingPiece.localPosition = targetPostion;
+
+    //         //Disable the collider so we can't click on the object anymore.
+    //         //draggingPiece.GetComponent<BoxCollider2D>().enabled = false;
+
+    //         //Increase the number of correct pieces, and check for puzzle completion.
+    //         piecesCorrect++;
+    //         if (piecesCorrect == pieces.Count)
+    //         {
+    //             playAgainButton.SetActive(true);
+    //         }
+    //     }
+    // }
 
     public void StartGame(Texture2D jigsawTexture)
     {
@@ -130,13 +160,7 @@ public class GameManager : MonoBehaviour
         //As we're starting the puzzle there will be no correct pieces.
         piecesCorrect = 0;
     }
-    /// <summary>
-    /// Difficuty is the number of pieces on the smallest texture dimension.
-    /// This Helps ensure the pieces are as squres as possible.
-    /// </summary>
-    /// <param name="jigsawTexture"></param>
-    /// <param name="difficulty"></param>
-    /// <returns></returns>
+
     Vector2Int GetDimensions(Texture2D jigsawTexture, int difficulty)
     {
         Vector2Int dimensions = Vector2Int.zero; //1.디멘션를 선언하여 가로 세로 크기를 저장할 공간을 만듦
@@ -158,8 +182,8 @@ public class GameManager : MonoBehaviour
     {
         //Calculate piece sizes based on the dimensions.
         height = 1f / dimensions.y; //퍼즐조각의 높이 = 1 / dimensions.y=퍼즐의 세로 방향의 조각수
-        //예를 들어 dimensions.y가 4라면 height는 0.25임
-        //원본 이미지의 가로 세로 비율
+                                    //예를 들어 dimensions.y가 4라면 height는 0.25임
+                                    //원본 이미지의 가로 세로 비율
         float aspect = (float)jigsawTexture.width / jigsawTexture.height;
         width = aspect / dimensions.x; //이렇게 해야 원본 이미지의 가로세로 비율 유지되면서 퍼즐조각의 너비 결정
 
@@ -194,7 +218,7 @@ public class GameManager : MonoBehaviour
                 //Assign our new UVs to the mesh.
                 Mesh mesh = piece.GetComponent<MeshFilter>().mesh;
                 mesh.uv = uv; //이 부분은 가져온 메시의 UV 맵을 설정한다.
-                //UPdate the texture on the piece
+                              //UPdate the texture on the piece
                 piece.GetComponent<MeshRenderer>().material.SetTexture("_MainTex", jigsawTexture);
             }
         }
@@ -248,5 +272,19 @@ public class GameManager : MonoBehaviour
 
         //Show the border line.
         lineRenderer.enabled = true;
+    }
+    public void RestartGame()
+    {
+        //Destroy all the puzzle pieces.
+        foreach (Transform piece in pieces)
+        {
+            Destroy(piece.gameObject);
+        }
+        pieces.Clear();
+        //Hide the outline.
+        gameHolder.GetComponent<LineRenderer>().enabled = false;
+        //Show the level select UI.
+        playAgainButton.SetActive(false);
+        levelSelectPanel.gameObject.SetActive(true);
     }
 }
