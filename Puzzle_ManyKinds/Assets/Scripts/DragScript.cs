@@ -6,30 +6,24 @@ public class DragScript : MonoBehaviour
 {
     public delegate void DragEndedDelegate(Transform transform);
     public DragEndedDelegate dragEndedDelegate;
-    Camera cam;
-    Vector2 pos;
-    bool isholding;
-    void Start()
-    {
-        cam = Camera.main;
-    }
+    Vector3 pos;
+    bool holding;
     void Update()
     {
-        if (isholding)
+        if (holding)
         {
-            pos = cam.ScreenToWorldPoint(Input.mousePosition);
+            pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            pos.z = 0f;
             transform.position = pos;
         }
     }
     private void OnMouseDown()
     {
-        Debug.Log("OnMouseDown() is working");
-        isholding = true;
+        holding = true;
     }
     private void OnMouseUp()
     {
-        Debug.Log("OnMouseUp() is working");
-        isholding = false;
+        holding = false;
         dragEndedDelegate(this.transform);
     }
 }
