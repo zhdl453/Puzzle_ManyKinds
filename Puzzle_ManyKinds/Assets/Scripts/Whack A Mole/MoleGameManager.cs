@@ -14,6 +14,12 @@ public class MoleGameManager : MonoBehaviour
     [SerializeField] private GameObject bombText;
     [SerializeField] private TMPro.TextMeshProUGUI timeText;
     [SerializeField] private TMPro.TextMeshProUGUI scoreText;
+    [Header("-----------[Audio]")]
+    public AudioSource bgmPlayer;
+    public AudioSource[] sfxPlayer;
+    public AudioClip[] sfxClip;
+    public enum sfx { click, dead, Button, Over, deadHardHat }
+    int sfxCursor;
 
     // Hardcoded variables you may want to tune.
     private float startingTime = 30f;
@@ -28,10 +34,12 @@ public class MoleGameManager : MonoBehaviour
     public void StartGame()
     {
         // Hide/show the UI elements we don't/do want to see.
+        sfxPlay(sfx.Button);
         playButton.SetActive(false);
         outOfTimeText.SetActive(false);
         bombText.SetActive(false);
         gameUI.SetActive(true);
+        bgmPlayer.Play();
         // Hide all the visible moles.
         for (int i = 0; i < moles.Count; i++)
         {
@@ -66,6 +74,8 @@ public class MoleGameManager : MonoBehaviour
         // Stop the game and show the start UI.
         playing = false;
         playButton.SetActive(true);
+        bgmPlayer.Stop();
+        sfxPlay(sfx.Over);
     }
 
     // Update is called once per frame
@@ -116,5 +126,28 @@ public class MoleGameManager : MonoBehaviour
         }
         // Remove from active moles.
         currentMoles.Remove(moles[moleIndex]);
+    }
+    public void sfxPlay(sfx type)//{ click, dead, Button, Over }
+    {
+        switch (type)
+        {
+            case sfx.click:
+                sfxPlayer[sfxCursor].clip = sfxClip[0];
+                break;
+            case sfx.dead:
+                sfxPlayer[sfxCursor].clip = sfxClip[1];
+                break;
+            case sfx.Button:
+                sfxPlayer[sfxCursor].clip = sfxClip[2];
+                break;
+            case sfx.Over:
+                sfxPlayer[sfxCursor].clip = sfxClip[3];
+                break;
+            case sfx.deadHardHat:
+                sfxPlayer[sfxCursor].clip = sfxClip[4];
+                break;
+        }
+        sfxPlayer[sfxCursor].Play();
+        sfxCursor = (sfxCursor + 1) % sfxPlayer.Length; //계속 0,1,2가 될거임
     }
 }

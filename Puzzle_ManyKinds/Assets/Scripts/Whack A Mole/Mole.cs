@@ -113,6 +113,7 @@ public class Mole : MonoBehaviour
             {
                 case MoleType.Standard:
                     spriteRenderer.sprite = moleHit;
+                    moleGameManager.sfxPlay(MoleGameManager.sfx.dead);
                     moleGameManager.AddScore(moleIndex);
                     // Stop the animation
                     StopAllCoroutines();
@@ -130,6 +131,7 @@ public class Mole : MonoBehaviour
                     else
                     {
                         spriteRenderer.sprite = moleHatHit;
+                        moleGameManager.sfxPlay(MoleGameManager.sfx.deadHardHat);
                         moleGameManager.AddScore(moleIndex);
                         // Stop the animation
                         StopAllCoroutines();
