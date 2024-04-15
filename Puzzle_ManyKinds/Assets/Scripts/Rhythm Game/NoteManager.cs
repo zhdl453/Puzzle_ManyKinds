@@ -29,4 +29,11 @@ public class NoteManager : MonoBehaviour
             currentTime -= 60d/bpm; //0으로 안하고 굳이 -60/bpm으로 빼주는 이유 => deltaTime을 더해주기 때문에 0.5초가 아니라 0.5100551..초가 됨.
         }
     }
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if(other.CompareTag("Note"))
+        {
+            Destroy(other.gameObject);
+        }
+    }
 }
