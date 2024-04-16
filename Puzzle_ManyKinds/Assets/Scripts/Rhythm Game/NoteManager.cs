@@ -8,10 +8,16 @@ public class NoteManager : MonoBehaviour
     double currentTime;
 
     [SerializeField] Transform tfNoteAppear;
-     [SerializeField] GameObject goNote;
+     TimingManager timingManager; //노트 생성한거 노트List에다가 넣어줘야함
+     EffectManager effectManager;
      void Awake()
      {
         currentTime = 0d;
+     }
+     private void Start()
+     {
+        timingManager  = GetComponent<TimingManager>();
+        effectManager = FindObjectOfType<EffectManager>();
      }
 
     // 60/120 = 1beat 당 0.5초 : 60s/bpm = 1beat시간
@@ -24,8 +30,10 @@ public class NoteManager : MonoBehaviour
 
         if(currentTime >=60d /bpm)
         {
-            GameObject t_note = Instantiate(goNote, tfNoteAppear.position, Quaternion.identity);
-            t_note.transform.SetParent(this.transform);
+            GameObject t_note = ObjectPool.instance.noteQueue.Dequeue(); //Dequeue(): 큐에있는걸 빼오는거임
+            t_note.transform.position = tfNoteAppear.position;
+            t_note.SetActive(true);
+            timingManager.boxNoteList.Add(t_note);
             currentTime -= 60d/bpm; //0으로 안하고 굳이 -60/bpm으로 빼주는 이유 => deltaTime을 더해주기 때문에 0.5초가 아니라 0.5100551..초가 됨.
         }
     }
@@ -33,7 +41,14 @@ public class NoteManager : MonoBehaviour
     {
         if(other.CompareTag("Note"))
         {
-            Destroy(other.gameObject);
+           if(other.GetComponent<Note>().GetNoteFlag())// *이미지가 보여질때만!!miss를 뜨게 한다
+           {
+            effectManager.JudgementEffect(4); //Missed 연출뜨게 
+           }
+            timingManager.boxNoteList.Remove(other.gameObject);
+            ObjectPool.instance.noteQueue.Enqueue(other.gameObject); //다 쓴 노트들을 큐에다가 다시 담아줌
+            other.gameObject.SetActive(false);
+            
         }
     }
 }
