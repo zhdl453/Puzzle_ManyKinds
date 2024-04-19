@@ -10,12 +10,16 @@ public class TimingManager : MonoBehaviour
     [SerializeField] RectTransform[] timingRects; //다양한 판점 범위를 보여줄 RectTransform배열도 선언
     Vector2[] timingBoxes; //RectTransform[]실제값들을 여기에 넣어줄거임. 판정범위의 최소값x, 최대값y
     EffectManager effectManager;
+    ScoreManager scoreManager;
+    ComboManager comboManager;
 
     void Awake()
     {
         boxNoteList = new List<GameObject>();
         timingBoxes = new Vector2[timingRects.Length];
         effectManager = FindObjectOfType<EffectManager>();
+        scoreManager = FindObjectOfType<ScoreManager>();
+        comboManager = FindObjectOfType<ComboManager>();
     }
     void Start()
     {
@@ -51,10 +55,14 @@ public class TimingManager : MonoBehaviour
                         effectManager.NoteHitEffect(); 
                     }           
                     effectManager.JudgementEffect(x);
+
+                    //점수 증가
+                    scoreManager.IncreaseScore(x);
                     return; //이미 판상 범위 있는 노트를 찾았으니까 의미없는 반복을 게속할 필요가 없음
                 }
             }
-        }   
+        }
+        comboManager.ResetCombo();
         effectManager.JudgementEffect(timingBoxes.Length); //timingBoxes.Length는 5니까 Missed가 뜰거임!
     }
 }

@@ -10,6 +10,7 @@ public class NoteManager : MonoBehaviour
     [SerializeField] Transform tfNoteAppear;
      TimingManager timingManager; //노트 생성한거 노트List에다가 넣어줘야함
      EffectManager effectManager;
+     ComboManager comboManager;
      void Awake()
      {
         currentTime = 0d;
@@ -18,6 +19,7 @@ public class NoteManager : MonoBehaviour
      {
         timingManager  = GetComponent<TimingManager>();
         effectManager = FindObjectOfType<EffectManager>();
+        comboManager = FindObjectOfType<ComboManager>();
      }
 
     // 60/120 = 1beat 당 0.5초 : 60s/bpm = 1beat시간
@@ -44,6 +46,7 @@ public class NoteManager : MonoBehaviour
            if(other.GetComponent<Note>().GetNoteFlag())// *이미지가 보여질때만!!miss를 뜨게 한다
            {
             effectManager.JudgementEffect(4); //Missed 연출뜨게 
+            comboManager.ResetCombo();
            }
             timingManager.boxNoteList.Remove(other.gameObject);
             ObjectPool.instance.noteQueue.Enqueue(other.gameObject); //다 쓴 노트들을 큐에다가 다시 담아줌
