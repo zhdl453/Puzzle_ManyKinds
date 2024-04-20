@@ -34,7 +34,7 @@ public class TimingManager : MonoBehaviour
         }
     }
 
-    public void CheckTiming() //판정범위 최소값 <= 노트의 x값 <판정범위 최대값
+    public bool CheckTiming() //판정범위 최소값 <= 노트의 x값 <판정범위 최대값
     {
         for (int i = 0; i < boxNoteList.Count; i++)
         {
@@ -58,11 +58,13 @@ public class TimingManager : MonoBehaviour
 
                     //점수 증가
                     scoreManager.IncreaseScore(x);
-                    return; //이미 판상 범위 있는 노트를 찾았으니까 의미없는 반복을 게속할 필요가 없음
+                    return true; //올바른 판정값이 되면 true
+                    //이미 판상 범위 있는 노트를 찾았으니까 의미없는 반복을 게속할 필요가 없음
                 }
             }
         }
         comboManager.ResetCombo();
         effectManager.JudgementEffect(timingBoxes.Length); //timingBoxes.Length는 5니까 Missed가 뜰거임!
+        return false; //miss 판정값이 되면 false반환
     }
 }
