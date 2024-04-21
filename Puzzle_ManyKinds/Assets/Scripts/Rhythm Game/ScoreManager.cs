@@ -43,4 +43,9 @@ public class ScoreManager : MonoBehaviour
         scoreAnimator.SetTrigger("ScoreUp");
         
     }
+
+    public int GetCurrentScore()
+    {
+        return currentScore;
+    }
 }

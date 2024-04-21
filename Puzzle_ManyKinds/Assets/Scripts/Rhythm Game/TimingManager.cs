@@ -6,6 +6,8 @@ public class TimingManager : MonoBehaviour
 {
     //생성된 노트를 담는 List => 판정범위에 있는지 모든 노트를 비교해야함
     public List<GameObject> boxNoteList;
+
+    int[] judgementRecord = new int[5]; //퍈정기록에다 보여줄 기록들
     [SerializeField] Transform Center; //판정 범위에 중심을 알려주는 센터 변수를 선언
     [SerializeField] RectTransform[] timingRects; //다양한 판점 범위를 보여줄 RectTransform배열도 선언
     Vector2[] timingBoxes; //RectTransform[]실제값들을 여기에 넣어줄거임. 판정범위의 최소값x, 최대값y
@@ -67,6 +69,7 @@ public class TimingManager : MonoBehaviour
                         scoreManager.IncreaseScore(x);
                         stageManager.ShowNextPlate(); //다음 빨판 나옴
                         effectManager.JudgementEffect(x);
+                        judgementRecord[x]++; //판정기록
                     }
                     else//새로운 빨판 안 밟으면 normal 판정뜨게
                     {
@@ -79,6 +82,7 @@ public class TimingManager : MonoBehaviour
         }
         comboManager.ResetCombo();
         effectManager.JudgementEffect(timingBoxes.Length); //timingBoxes.Length는 5니까 Missed가 뜰거임!
+        MissRecord(); //miss기록도 올라감판정기록
         return false; //miss 판정값이 되면 false반환
     }
     bool CheckCanNextPlate()
@@ -97,5 +101,15 @@ public class TimingManager : MonoBehaviour
             }
         }
         return false;
+    }
+
+    public int[] GetJudgementRecord()
+    {
+        return judgementRecord;
+    }
+
+    public void MissRecord()
+    {
+        judgementRecord[4]++;//판정기록
     }
 }

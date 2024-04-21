@@ -49,8 +49,9 @@ public class NoteManager : MonoBehaviour
         {
            if(other.GetComponent<Note>().GetNoteFlag())// *이미지가 보여질때만!!miss를 뜨게 한다
            {
-            effectManager.JudgementEffect(4); //Missed 연출뜨게 
-            comboManager.ResetCombo();
+                timingManager.MissRecord();
+                effectManager.JudgementEffect(4); //Missed 연출뜨게 
+                comboManager.ResetCombo();
            }
             timingManager.boxNoteList.Remove(other.gameObject);
             ObjectPool.instance.noteQueue.Enqueue(other.gameObject); //다 쓴 노트들을 큐에다가 다시 담아줌
