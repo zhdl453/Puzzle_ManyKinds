@@ -46,24 +46,27 @@ public class PlayerController : MonoBehaviour
      }
     void Update()
     {
-        CheckFalling();
-        if(Input.GetKeyDown(KeyCode.A)||Input.GetKeyDown(KeyCode.S)||Input.GetKeyDown(KeyCode.D)||Input.GetKeyDown(KeyCode.W))
+        if(GeneralManager.Instance.isGameStart)
         {
-            if(canMove &&s_canPressKey&&!isFalling)
+            CheckFalling();
+            if(Input.GetKeyDown(KeyCode.A)||Input.GetKeyDown(KeyCode.S)||Input.GetKeyDown(KeyCode.D)||Input.GetKeyDown(KeyCode.W))
             {
-                Calc(); //타이밍 체크하기전에 잘 방향맞게 가는지 계산부터 하는거임.
-                if(timingManager.CheckTiming())
+                if(canMove &&s_canPressKey&&!isFalling)
                 {
-                    StartAction();
-                    Debug.Log($"StartAction()실행: {timingManager.CheckTiming()}");
-                }
-                else
-                {
-                    Debug.Log($"CheckTiming: {timingManager.CheckTiming()}");
+                    Calc(); //타이밍 체크하기전에 잘 방향맞게 가는지 계산부터 하는거임.
+                    if(timingManager.CheckTiming())
+                    {
+                        StartAction();
+                        Debug.Log($"StartAction()실행: {timingManager.CheckTiming()}");
+                    }
+                    else
+                    {
+                        Debug.Log($"CheckTiming: {timingManager.CheckTiming()}");
+                    }
                 }
             }
-            
         }
+        
     }
     void Calc()
     {

@@ -25,6 +25,7 @@ public class Result : MonoBehaviour
     }
     public void ShowResult()
     {
+
         resultUI.SetActive(true);
         for (int i = 0; i < txtCount.Length; i++)
         {
@@ -46,5 +47,11 @@ public class Result : MonoBehaviour
          txtScore.text = string.Format("{0:#,##0}", t_currentScore);
          txtMaxCombo.text = string.Format("{0:#,##0}", t_maxCombo);
          txtCoin.text = string.Format("{0:#,##0}", t_coin);
+    }
+    public void BtnMainMenu()
+    {
+        resultUI.SetActive(false);
+        GeneralManager.Instance.MainMenu();
+        comboManager.ResetCombo();
     }
 }
