@@ -17,13 +17,15 @@ public class PlayerController : MonoBehaviour
     [Header("반동")]
     [SerializeField] float vibePosY; //들썩이게 하는 효과
     [SerializeField] float vibeSpeed; //들썩이게 하는 효과
-    bool canMove = true;
+    bool canMove = true; //플레이어가 움직이게 할수 있는 만드는 변수
+    bool isFalling = false; //플레이어가 떨어지는지 판단 변수
 
     [Header("기타")]
     [SerializeField] Transform fakeCube = null; //가짜 큐브를 먼저 돌려놓고, 그 돌아간 만큼의 값을 목표 회전값으로 삼음 =>그걸 destRot에 넣어줄거임
     [SerializeField] Transform realCube = null; //가짜 큐브를 먼저 돌려놓고, 그 돌아간 만큼의 값을 목표 회전값으로 삼음 =>그걸 destRot에 넣어줄거임
     TimingManager timingManager;
     [SerializeField] CameraController cameraController;
+    Rigidbody playerRigid;
     private void Awake() {
         moveSpeed = 3;
         spinSpeed = 270;
@@ -37,13 +39,15 @@ public class PlayerController : MonoBehaviour
     private void Start()
      {
         timingManager  = FindObjectOfType<TimingManager>();
+        playerRigid = GetComponentInChildren<Rigidbody>();
         //cameraController  = FindObjectOfType<CameraController>();
      }
     void Update()
     {
+        CheckFalling();
         if(Input.GetKeyDown(KeyCode.A)||Input.GetKeyDown(KeyCode.S)||Input.GetKeyDown(KeyCode.D)||Input.GetKeyDown(KeyCode.W))
         {
-            if(canMove &&s_canPressKey)
+            if(canMove &&s_canPressKey&&!isFalling)
             {
                 Calc(); //타이밍 체크하기전에 잘 방향맞게 가는지 계산부터 하는거임.
                 if(timingManager.CheckTiming())
@@ -119,5 +123,23 @@ public class PlayerController : MonoBehaviour
             yield return null;
         }
         realCube.localPosition = new Vector3(0,0,0);
+    }
+
+    void CheckFalling() //레이저 쏴서 plate와 충돌안하면 낭떠러지임
+    {
+        if(!isFalling)
+        {
+            if(Physics.Raycast(transform.position, Vector3.down,1.1f))
+            {
+                Falling();
+            }
+        }
+        
+    }
+    void Falling()
+    {
+        isFalling = true;
+        playerRigid.useGravity = true;
+        playerRigid.isKinematic = false;
     }
 }
