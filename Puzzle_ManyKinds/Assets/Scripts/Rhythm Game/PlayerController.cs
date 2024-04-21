@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float moveSpeed;
     Vector3 dir; //어느방향으로 갈지
     public Vector3 destPos; //목적지
+    Vector3 originPos = new Vector3();
 
     [Header("회전")]
     [SerializeField] float spinSpeed;
@@ -40,6 +41,7 @@ public class PlayerController : MonoBehaviour
      {
         timingManager  = FindObjectOfType<TimingManager>();
         playerRigid = GetComponentInChildren<Rigidbody>();
+        originPos = transform.position;
         //cameraController  = FindObjectOfType<CameraController>();
      }
     void Update()
@@ -127,9 +129,9 @@ public class PlayerController : MonoBehaviour
 
     void CheckFalling() //레이저 쏴서 plate와 충돌안하면 낭떠러지임
     {
-        if(!isFalling)
+        if(!isFalling && canMove)//canMove넣은이유: 움직임이 완전 멈춘 상태에서 떨어지는 상태일지아닐지 판단해주고 싶음
         {
-            if(Physics.Raycast(transform.position, Vector3.down,1.1f))
+            if(!Physics.Raycast(transform.position, Vector3.down,1.1f))
             {
                 Falling();
             }
@@ -141,5 +143,14 @@ public class PlayerController : MonoBehaviour
         isFalling = true;
         playerRigid.useGravity = true;
         playerRigid.isKinematic = false;
+    }
+
+    public void ResetFalling()
+    {
+        isFalling = false;
+        playerRigid.useGravity = false;
+        playerRigid.isKinematic= true;
+        transform.position = originPos;
+        realCube.localPosition = new Vector3(0,0,0); //rigidbody가 없는 부모객체는 낭떠러지위에, 자식객체(그래픽)은 추락중이니 이것도 위로 올려줘야함
     }
 }
