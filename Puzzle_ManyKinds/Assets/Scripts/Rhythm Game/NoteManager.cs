@@ -66,5 +66,7 @@ public class NoteManager : MonoBehaviour
             timingManager.boxNoteList[i].SetActive(false); //끝났으면 안보이게 비활성화
             ObjectPool.instance.noteQueue.Enqueue(timingManager.boxNoteList[i]); //비활된거 다 큐에 다시 담아줌
         }
+
+        timingManager.boxNoteList.Clear(); //게임 끝나고 노트들은 비활해줬으면 리스트들 안에 들어있는것도 정리 해줘야함
     }
 }

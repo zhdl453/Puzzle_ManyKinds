@@ -18,4 +18,8 @@ public class CenterFlame : MonoBehaviour
             musicStart = true;
         }
     }
+    public void ResetMusic()
+    {
+        musicStart = false;
+    }
 }

@@ -23,6 +23,11 @@ public class ScoreManager : MonoBehaviour
         scoreAnimator = GetComponent<Animator>();
         comboManager = FindObjectOfType<ComboManager>();
     }
+    public void Init()
+    {
+        currentScore =0;
+        scoreText.text = "0";
+    }
     public void IncreaseScore(int x)
     {
         //콤보증가

@@ -1,18 +1,30 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class StageManager : MonoBehaviour
 {
    [SerializeField] GameObject stage = null;
+   GameObject currentStage;
    public Transform[] plateTranses;
    [SerializeField] float offsetY = 5; //뻘판이 위에서 착착 붙어서 생기는것처럼
    [SerializeField] float plateSpeed = 10; //얼마나 빠르게 올라올지
    int stepCount = 0;
    int totalPlateCount = 0;
-    void Start()
+
+   public void RemoveStage()
+   {
+        if(currentStage !=null) //데이터가 있다는뜻
+        {
+            Destroy(currentStage); //있으면 없애라는거임
+        }
+   }
+   public void SettingStage() //함수 호출할때만 스테이지 만들게끔
     {
-        plateTranses = stage.GetComponent<Stage>().plateTranses;
+        stepCount = 0;
+        currentStage = Instantiate(stage, Vector3.zero, quaternion.identity);// Vector3.zero:자기 위치에 생성해주는거임
+        plateTranses = currentStage.GetComponent<Stage>().plateTranses;
         totalPlateCount = plateTranses.Length;
 
         for (int i = 0; i < totalPlateCount; i++)

@@ -25,7 +25,7 @@ public class Result : MonoBehaviour
     }
     public void ShowResult()
     {
-
+        FindObjectOfType<CenterFlame>().ResetMusic();
         resultUI.SetActive(true);
         for (int i = 0; i < txtCount.Length; i++)
         {

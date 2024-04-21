@@ -37,6 +37,17 @@ public class PlayerController : MonoBehaviour
         vibePosY = 0.25f;
         vibeSpeed=1.5f;
     }
+    public void Init() //게임리셋
+    {
+        transform.position = Vector3.zero;
+        destPos = Vector3.zero;
+        realCube.localPosition = Vector3.zero;
+        canMove = true;
+        s_canPressKey = true;
+        isFalling = false;
+        playerRigid.useGravity = false;
+        playerRigid.isKinematic = true;
+    }
     private void Start()
      {
         timingManager  = FindObjectOfType<TimingManager>();

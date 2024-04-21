@@ -27,6 +27,13 @@ public class TimingManager : MonoBehaviour
         stageManager = FindObjectOfType<StageManager>();
         playerController = FindObjectOfType<PlayerController>();
     }
+    public void Init()
+    {
+        for (int i = 0; i < judgementRecord.Length; i++)
+        {
+            judgementRecord[i] = 0;
+        }
+    }
     void Start()
     {
         //각각의 판정범위: 최소값=중심-(이미지의너비/2) ~ 최대값=중심+(이미지의너비/2)
