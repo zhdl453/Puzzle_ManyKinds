@@ -12,6 +12,8 @@ public class TimingManager : MonoBehaviour
     EffectManager effectManager;
     ScoreManager scoreManager;
     ComboManager comboManager;
+    StageManager stageManager;
+    PlayerController playerController;
 
     void Awake()
     {
@@ -20,6 +22,8 @@ public class TimingManager : MonoBehaviour
         effectManager = FindObjectOfType<EffectManager>();
         scoreManager = FindObjectOfType<ScoreManager>();
         comboManager = FindObjectOfType<ComboManager>();
+        stageManager = FindObjectOfType<StageManager>();
+        playerController = FindObjectOfType<PlayerController>();
     }
     void Start()
     {
@@ -54,10 +58,20 @@ public class TimingManager : MonoBehaviour
                     {
                         effectManager.NoteHitEffect(); 
                     }           
-                    effectManager.JudgementEffect(x);
+                    
 
-                    //점수 증가
-                    scoreManager.IncreaseScore(x);
+                    //새로운 빨판 나올때만 점수 증가하게
+                    if(CheckCanNextPlate())
+                    {
+                        //점수 증가
+                        scoreManager.IncreaseScore(x);
+                        stageManager.ShowNextPlate(); //다음 빨판 나옴
+                        effectManager.JudgementEffect(x);
+                    }
+                    else//새로운 빨판 안 밟으면 normal 판정뜨게
+                    {
+                        effectManager.JudgementEffect(5);
+                    }        
                     return true; //올바른 판정값이 되면 true
                     //이미 판상 범위 있는 노트를 찾았으니까 의미없는 반복을 게속할 필요가 없음
                 }
@@ -66,5 +80,22 @@ public class TimingManager : MonoBehaviour
         comboManager.ResetCombo();
         effectManager.JudgementEffect(timingBoxes.Length); //timingBoxes.Length는 5니까 Missed가 뜰거임!
         return false; //miss 판정값이 되면 false반환
+    }
+    bool CheckCanNextPlate()
+    {
+        //목적지 좌표에서 아래로 발사 =>충돌한 BasicPlate를 t_hitInfo에 획득한다.
+        if(Physics.Raycast(playerController.destPos, Vector3.down, out RaycastHit t_hitInfo, 1.1f))
+        {
+            if(t_hitInfo.transform.CompareTag("BasicPlate"))
+            {
+                BasicPlate t_plate = t_hitInfo.transform.GetComponent<BasicPlate>();
+                if(t_plate.flag)
+                {
+                    t_plate.flag = false; //이미 밟은 발판을 또 출연하게 하면 안되니까 밟은건 false로 처리 해주는거임
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

@@ -4,10 +4,11 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    public static bool s_canPressKey = true;
     [Header("이동")]
     [SerializeField] float moveSpeed;
     Vector3 dir; //어느방향으로 갈지
-    Vector3 destPos; //목적지
+    public Vector3 destPos; //목적지
 
     [Header("회전")]
     [SerializeField] float spinSpeed;
@@ -22,6 +23,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Transform fakeCube = null; //가짜 큐브를 먼저 돌려놓고, 그 돌아간 만큼의 값을 목표 회전값으로 삼음 =>그걸 destRot에 넣어줄거임
     [SerializeField] Transform realCube = null; //가짜 큐브를 먼저 돌려놓고, 그 돌아간 만큼의 값을 목표 회전값으로 삼음 =>그걸 destRot에 넣어줄거임
     TimingManager timingManager;
+    [SerializeField] CameraController cameraController;
     private void Awake() {
         moveSpeed = 3;
         spinSpeed = 270;
@@ -35,13 +37,15 @@ public class PlayerController : MonoBehaviour
     private void Start()
      {
         timingManager  = FindObjectOfType<TimingManager>();
+        //cameraController  = FindObjectOfType<CameraController>();
      }
     void Update()
     {
         if(Input.GetKeyDown(KeyCode.A)||Input.GetKeyDown(KeyCode.S)||Input.GetKeyDown(KeyCode.D)||Input.GetKeyDown(KeyCode.W))
         {
-            if(canMove)
+            if(canMove &&s_canPressKey)
             {
+                Calc(); //타이밍 체크하기전에 잘 방향맞게 가는지 계산부터 하는거임.
                 if(timingManager.CheckTiming())
                 {
                     StartAction();
@@ -55,7 +59,7 @@ public class PlayerController : MonoBehaviour
             
         }
     }
-    void StartAction()
+    void Calc()
     {
         //방향 계산
         dir.Set(Input.GetAxisRaw("Vertical"),0,Input.GetAxisRaw("Horizontal")); //상하로는 안움직이게 0
@@ -68,10 +72,16 @@ public class PlayerController : MonoBehaviour
         //RotateAround(): 태양 주변을 공전하는 지구등을 구현할때 사용:RotateAround(공전 대상, 최전축, 회전값)을 이용한 <편법 회전 구현>
         fakeCube.RotateAround(transform.position, rotDir, spinSpeed);
         destRot = fakeCube.rotation;
+    }
+    void StartAction()
+    {
+        
 
         StartCoroutine(MoveGo());
         StartCoroutine(SpinGo());
         StartCoroutine(VibeGo());
+        StartCoroutine(cameraController.ZoomCam());
+
     }
 
     IEnumerator MoveGo()
